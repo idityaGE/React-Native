@@ -1,6 +1,6 @@
-import { Stack, useRouter, useSegments } from "expo-router";
-import { use, useEffect } from "react";
 import { AuthContextProvider, useAuth } from "@/store/auth-context";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
 
 const RouteGuard = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoadingUser } = useAuth()
@@ -25,6 +25,7 @@ export default function RootLayout() {
       <RouteGuard>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
         </Stack>
       </RouteGuard>
     </AuthContextProvider>
