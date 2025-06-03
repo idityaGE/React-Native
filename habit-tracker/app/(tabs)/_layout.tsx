@@ -24,6 +24,7 @@ const TabLayout = () => {
         name="index"
         options={{
           title: "Today's Habits",
+          headerShown: false,
           tabBarIcon: ({ color, focused, size }) => {
             return <MaterialCommunityIcons name="calendar" size={size} color={color} />
           }

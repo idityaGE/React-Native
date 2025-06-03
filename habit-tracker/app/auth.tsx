@@ -1,5 +1,5 @@
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
-import { Button, Text, TextInput } from 'react-native-paper'
+import { Button, Text, TextInput, ActivityIndicator } from 'react-native-paper'
 import { useState } from 'react'
 import { useAuth } from '@/store/auth-context';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null);
 
   const { signIn, signUp } = useAuth()
@@ -19,27 +20,33 @@ const AuthScreen = () => {
       return;
     }
     if (password.length < 6) {
-      setError("Password must be atlest 6 charaters");
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setError(null);
+    setIsLoading(true);
 
-    if (isSignUp) {
-      const error = await signUp(email, password);
-      if (error) {
-        setError(error);
-        return
+    try {
+      if (isSignUp) {
+        const error = await signUp(email, password);
+        if (error) {
+          setError(error);
+          return;
+        }
+      } else {
+        const error = await signIn(email, password);
+        if (error) {
+          setError(error);
+          return;
+        }
       }
-    } else {
-      const error = await signIn(email, password)
-      if (error) {
-        setError(error);
-        return
-      }
+      router.replace('/');
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
-    router.replace('/')
-
   }
 
   return (
@@ -60,6 +67,7 @@ const AuthScreen = () => {
             value={email}
             onChangeText={setEmail}
             style={styles.input}
+            disabled={isLoading}
           />
           <TextInput
             label="Password"
@@ -69,6 +77,7 @@ const AuthScreen = () => {
             value={password}
             onChangeText={setPassword}
             style={styles.input}
+            disabled={isLoading}
           />
         </View>
 
@@ -82,8 +91,10 @@ const AuthScreen = () => {
             onPress={handleSubmit}
             style={styles.primaryButton}
             contentStyle={styles.buttonContent}
+            disabled={isLoading}
+            loading={isLoading}
           >
-            {isSignUp ? 'Sign Up' : 'Log In'}
+            {isLoading ? '' : (isSignUp ? 'Sign Up' : 'Log In')}
           </Button>
 
           <Button
@@ -91,10 +102,20 @@ const AuthScreen = () => {
             onPress={() => setIsSignUp(prev => !prev)}
             style={styles.secondaryButton}
             contentStyle={styles.buttonContent}
+            disabled={isLoading}
           >
             {isSignUp ? 'Switch to Log In' : 'Switch to Sign Up'}
           </Button>
         </View>
+
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" />
+            <Text style={styles.loadingText}>
+              {isSignUp ? 'Creating account...' : 'Signing in...'}
+            </Text>
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   )
@@ -142,5 +163,15 @@ const styles = StyleSheet.create({
   },
   buttonContent: {
     paddingVertical: 8,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 })
