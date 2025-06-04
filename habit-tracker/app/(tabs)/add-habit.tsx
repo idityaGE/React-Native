@@ -41,7 +41,7 @@ const AddHabit = () => {
           description: description.trim(),
           frequency,
           streak_count: 0,
-          last_completed: new Date().toDateString(),
+          last_completed: "",
           created_at: new Date().toDateString()
         }
       )
